@@ -7,9 +7,9 @@ const staticFilesToPreCache = [
   "/icons/icon-192x192.png",
   "/icons/icon-512x512.png",
   "/manifest.webmanifest",
-  "/style.css"
-].concat(iconFiles);
-
+  "/style.css",
+  "/index.html"
+];
 
 // install
 self.addEventListener("install", function(evt) {
@@ -19,7 +19,6 @@ self.addEventListener("install", function(evt) {
       return cache.addAll(staticFilesToPreCache);
     })
   );
-
   self.skipWaiting();
 });
 
@@ -37,7 +36,6 @@ self.addEventListener("activate", function(evt) {
       );
     })
   );
-
   self.clients.claim();
 });
 
@@ -53,7 +51,6 @@ self.addEventListener("fetch", function(evt) {
             if (response.status === 200) {
               cache.put(evt.request, response.clone());
             }
-
             return response;
           })
           .catch(err => {
