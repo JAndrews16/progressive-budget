@@ -7,7 +7,7 @@ const staticFilesToPreCache = [
   "/icons/icon-192x192.png",
   "/icons/icon-512x512.png",
   "/manifest.webmanifest",
-  "/style.css",
+  "/styles.css",
   "/index.html"
 ];
 
@@ -44,32 +44,29 @@ self.addEventListener("activate", function(evt) {
 
 // fetch
 self.addEventListener("fetch", function(evt) {
-  const {url} = evt.request;
-  if (url.includes("/api/")) {
-    evt.respondWith(
-      caches.open(DATA_CACHE_NAME).then(cache => {
-        return fetch(evt.request)
-          .then(response => {
-            // If the response was good, clone it and store it in the cache.
-            if (response.status === 200) {
-              cache.put(evt.request, response.clone());
-            }
-            return response;
-          })
-          .catch(err => {
-            // Network request failed, try to get it from the cache.
-            return cache.match(evt.request);
-          });
-      }).catch(err => console.log(err))
-    );
-  } else {
-    // respond from static cache, request is not for /api/*
-    evt.respondWith(
-      caches.open(CACHE_NAME).then(cache => {
-        return cache.match(evt.request).then(response => {
-          return response || fetch(evt.request);
-        });
-      })
-    );
+  if (evt.request.url.includes("/api/")) {
+      evt.respondWith(
+          caches.open(DATA_CACHE_NAME).then(cache => {
+              return fetch(evt.request)
+              .then(response => {
+                  if (response.status === 200) {
+                      cache.put(evt.request.url, response.clone());
+                  }
+
+                  return response;
+              })
+              .catch(error => {
+                  return cache.match(evt.request.url);
+              });
+          }).catch(error => console.log(error))
+      )
+      return;
   }
+
+  evt.respondWith(
+      caches.match(evt.request.url)
+      .then(response => {
+          return response || fetch(evt.request);
+      })
+  )
 });
